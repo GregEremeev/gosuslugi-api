@@ -1,6 +1,7 @@
 import time
 import logging
 from io import BytesIO
+from typing import Union
 from urllib.parse import urlencode
 from zipfile import ZipFile
 
@@ -14,11 +15,15 @@ from gosuslugi_api.exceptions import RegionCodeIsAbsentError
 logger = logging.getLogger(__name__)
 
 
-def _get_body_for_logging(body: bytes) -> str:
+def _get_body_for_logging(body: Union[bytes, str]) -> str:
     if body:
-        return (b' BODY: ' + body).decode('utf-8')
+        if isinstance(body, bytes):
+            return (b' BODY: ' + body).decode('utf-8')
+        else:
+            return ' BODY: ' + body
     else:
         return ''
+
 
 def _get_duration_for_logging(duration: str) -> str:
     if duration is not None:
@@ -140,6 +145,29 @@ class GosUslugiAPIClient:
     DOWNLOAD_LICENSES_INFO_URL = (
         f'{BASE_URL}filestore/publicDownloadAllFilesServlet?'
         'context=licenses&uids={uid}&zipFileName={file_name}.zip')
+    ORGANIZATIONS_URL = (
+        f'{BASE_URL}ppa/api/rest/services/ppa/'
+        'organizations/chooser/search;page=1;itemsPerPage=11')
+    ORGANIZATION_URL = (
+        f'{BASE_URL}ppa/api/rest/services/ppa/public/organizations'
+        '/orgByGuid?organizationGuid={}')
+    HOUSE_CODE_URL = (
+        f'{BASE_URL}nsi/api/rest/services/nsi/fias/v4/houses?'
+        'houseCodes={}&includeDuplicates=false&actual=true')
+
+    ORGANIZATION_PAYLOAD_PART_1 = '''
+    {"sortCriteriaList":[{"sortedBy":"organizationType","ascending":false},
+    {"sortedBy":"shortName","ascending":true},{"sortedBy":"fullName",
+    "ascending":true},{"sortedBy":"parentKpp","ascending":true},
+    {"sortedBy":"kpp","ascending":true}],"organizationStatuses":
+    {"coll":["REGISTERED"],"operand":"OR"},"organizationTypes":
+    {"coll":["B","L","A"],"operand":"OR"},"subordinationOrgTypeList":
+    {"coll":["HEAD","BRANCH"],"operand":"OR"},"commonSearchString":'''
+    ORGANIZATION_PAYLOAD_PART_2 = ''',"roleConstraints":{"coll":[{"roleCode":"1",
+    "roleStatuses":["APPROVED"]},{"roleCode":"19","roleStatuses":
+    ["APPROVED"]},{"roleCode":"20","roleStatuses":["APPROVED"]},
+    {"roleCode":"22","roleStatuses":["APPROVED"]},
+    {"roleCode":"21","roleStatuses":["APPROVED"]}],"operand":"OR"}}'''
 
     def __init__(self, timeout=5, keep_alive=False):
         self._region_codes = set(self.REGION_CODES_AND_NAMES)
@@ -149,6 +177,8 @@ class GosUslugiAPIClient:
         status_code = response.status_code
         if status_code >= 400:
             response.raise_for_status()
+        elif not response.content:
+            return ''
         else:
             return response.json()
 
@@ -201,3 +231,20 @@ class GosUslugiAPIClient:
         license_uids = self._get_license_uids(region_codes)
         licenses_info = self._get_licenses_info(license_uids)
         return self._get_xlsx_workbooks_from_licenses_info(licenses_info)
+
+    def get_organizations(self, inn):
+        payload = self.ORGANIZATION_PAYLOAD_PART_1 + str(inn)
+        payload += self.ORGANIZATION_PAYLOAD_PART_2
+
+        url = self.ORGANIZATIONS_URL
+        headers = {'Content-Type': 'application/json'}
+        response = self._http_client.post(url, data=payload, headers=headers)
+        return self._get_response_body(response)
+
+    def get_organization(self, guid):
+        url = self.ORGANIZATION_URL.format(guid)
+        return self._get_response_body(self._http_client.get(url))
+
+    def get_houses(self, house_code):
+        url = self.HOUSE_CODE_URL.format(house_code)
+        return self._get_response_body(self._http_client.get(url))
