@@ -156,9 +156,11 @@ class GosUslugiAPIClient:
         license_uids = {}
         for region_code in region_codes:
             if region_code < 10:
-                region_code = f'0{region_code}'
+                url_region_code = f'0{region_code}'
+            else:
+                url_region_code = region_code
             response = self._http_client.get(
-                self.LICENSE_UID_URL.format(region_code))
+                self.LICENSE_UID_URL.format(url_region_code))
             if response.status_code != 200:
                 logger.error(f'uid for {region_code} was not obtained')
             else:
