@@ -1,3 +1,4 @@
+import json
 import time
 import logging
 from io import BytesIO
@@ -154,6 +155,12 @@ class GosUslugiAPIClient:
     HOUSE_CODE_URL = (
         f'{BASE_URL}nsi/api/rest/services/nsi/fias/v4/houses?'
         'houseCodes={}&includeDuplicates=false&actual=true')
+    HOME_MANAGEMENTS_URL = (
+        f'{BASE_URL}homemanagement/api/rest/services/houses/public/'
+        'searchByOrg?pageIndex={page_number}&elementsPerPage={elems_per_page}')
+    HOME_MANAGEMENT_URL = (
+        'https://dom.gosuslugi.ru/homemanagement/api/rest/services/'
+        'houses/public/1/{}/')
 
     ORGANIZATION_PAYLOAD_PART_1 = '''
     {"sortCriteriaList":[{"sortedBy":"organizationType","ascending":false},
@@ -248,3 +255,22 @@ class GosUslugiAPIClient:
     def get_houses(self, house_code):
         url = self.HOUSE_CODE_URL.format(house_code)
         return self._get_response_body(self._http_client.get(url))
+
+    def get_home_managements(self, org_guid, start_page=1, per_page=1):
+        url = self.HOME_MANAGEMENTS_URL.format(
+            page_number=start_page, elems_per_page=per_page)
+        payload = json.dumps({'organizationGuid': org_guid, 'calcCount': True})
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, data=payload, headers=headers)
+        json_body = self._get_response_body(response)
+        yield json_body
+        objects_number = json_body['total'] or 0
+        for page_num in range(2, objects_number + 1):
+            url = self.HOME_MANAGEMENTS_URL.format(
+                page_number=page_num, elems_per_page=per_page)
+            response = requests.post(url, data=payload, headers=headers)
+            yield self._get_response_body(response)
+
+    def get_home_management(self, home_management_guid):
+        url = self.HOME_MANAGEMENT_URL.format(home_management_guid)
+        return self._get_response_body(requests.get(url))
