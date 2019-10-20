@@ -142,7 +142,7 @@ class GosUslugiAPIClient:
         'context=licenses&uids={uid}&zipFileName={file_name}.zip')
 
     def __init__(self, timeout=5, keep_alive=False):
-        self._region_codes = {c[0] for c in self.REGION_CODES_AND_NAMES}
+        self._region_codes = set(self.REGION_CODES_AND_NAMES)
         self._http_client = HTTPClient(timeout=timeout, keep_alive=keep_alive)
 
     def _get_response_body(self, response: requests.Response):
