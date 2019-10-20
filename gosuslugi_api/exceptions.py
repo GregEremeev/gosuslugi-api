@@ -1,0 +1,2 @@
+class RegionCodeIsAbsentError(Exception):
+    pass
