@@ -9,7 +9,7 @@ setup(
     name='gosuslugi-api',
     author='Greg Eremeev',
     author_email='gregory.eremeev@gmail.com',
-    version='0.1.0',
+    version='0.1.1',
     license='BSD-3-Clause',
     url='https://github.com/GregEremeev/gosuslugi-api',
     install_requires=requirements,
