@@ -154,7 +154,7 @@ class GosUslugiAPIClient:
         '/orgByGuid?organizationGuid={}')
     HOUSE_CODE_URL = (
         f'{BASE_URL}nsi/api/rest/services/nsi/fias/v4/houses?'
-        'houseCodes={}&includeDuplicates=false&actual=true')
+        'houseCodes={}&includeDuplicates=false&actual={}')
     HOME_MANAGEMENTS_URL = (
         f'{BASE_URL}homemanagement/api/rest/services/houses/public/'
         'searchByOrg?pageIndex={page_number}&elementsPerPage={elems_per_page}')
@@ -252,8 +252,12 @@ class GosUslugiAPIClient:
         url = self.ORGANIZATION_URL.format(guid)
         return self._get_response_body(self._http_client.get(url))
 
-    def get_houses(self, house_code):
-        url = self.HOUSE_CODE_URL.format(house_code)
+    def get_not_active_houses(self, house_code):
+        url = self.HOUSE_CODE_URL.format(house_code, 'false')
+        return self._get_response_body(self._http_client.get(url))
+
+    def get_active_houses(self, house_code):
+        url = self.HOUSE_CODE_URL.format(house_code, 'true')
         return self._get_response_body(self._http_client.get(url))
 
     def get_home_managements(self, org_guid, start_page=1, per_page=1):
