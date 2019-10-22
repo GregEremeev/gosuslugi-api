@@ -162,19 +162,21 @@ class GosUslugiAPIClient:
         'https://dom.gosuslugi.ru/homemanagement/api/rest/services/'
         'houses/public/1/{}/')
 
-    ORGANIZATION_PAYLOAD_PART_1 = '''
-    {"sortCriteriaList":[{"sortedBy":"organizationType","ascending":false},
-    {"sortedBy":"shortName","ascending":true},{"sortedBy":"fullName",
-    "ascending":true},{"sortedBy":"parentKpp","ascending":true},
-    {"sortedBy":"kpp","ascending":true}],"organizationStatuses":
-    {"coll":["REGISTERED"],"operand":"OR"},"organizationTypes":
-    {"coll":["B","L","A"],"operand":"OR"},"subordinationOrgTypeList":
-    {"coll":["HEAD","BRANCH"],"operand":"OR"},"commonSearchString":'''
-    ORGANIZATION_PAYLOAD_PART_2 = ''',"roleConstraints":{"coll":[{"roleCode":"1",
-    "roleStatuses":["APPROVED"]},{"roleCode":"19","roleStatuses":
-    ["APPROVED"]},{"roleCode":"20","roleStatuses":["APPROVED"]},
-    {"roleCode":"22","roleStatuses":["APPROVED"]},
-    {"roleCode":"21","roleStatuses":["APPROVED"]}],"operand":"OR"}}'''
+    ORGANIZATION_PAYLOAD_PART_1 = (
+        '{"sortCriteriaList":[{"sortedBy":"organizationType",'
+        '"ascending":false},'
+        '{"sortedBy":"shortName","ascending":true},{"sortedBy":"fullName",'
+        '"ascending":true},{"sortedBy":"parentKpp","ascending":true},'
+        '{"sortedBy":"kpp","ascending":true}],"organizationStatuses":'
+        '{"coll":["REGISTERED"],"operand":"OR"},"organizationTypes":'
+        '{"coll":["B","L","A"],"operand":"OR"},"subordinationOrgTypeList":'
+        '{"coll":["HEAD","BRANCH"],"operand":"OR"},"commonSearchString":"')
+    ORGANIZATION_PAYLOAD_PART_2 = (
+        '","roleConstraints":{"coll":[{"roleCode":"1",'
+        '"roleStatuses":["APPROVED"]},{"roleCode":"19","roleStatuses":'
+        '["APPROVED"]},{"roleCode":"20","roleStatuses":["APPROVED"]},'
+        '{"roleCode":"22","roleStatuses":["APPROVED"]},'
+        '{"roleCode":"21","roleStatuses":["APPROVED"]}],"operand":"OR"}}')
 
     def __init__(self, timeout=5, keep_alive=False):
         self._region_codes = set(self.REGION_CODES_AND_NAMES)
