@@ -17,12 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 def _get_body_for_logging(body: Union[bytes, str]) -> str:
-    if body:
+    try:
         if isinstance(body, bytes):
             return (b' BODY: ' + body).decode('utf-8')
-        else:
+        elif isinstance(body, str):
             return ' BODY: ' + body
-    else:
+        else:
+            return ''
+    except UnicodeDecodeError:
         return ''
 
 
@@ -254,11 +256,11 @@ class GosUslugiAPIClient:
         url = self.ORGANIZATION_URL.format(guid)
         return self._get_response_body(self._http_client.get(url))
 
-    def get_not_active_houses(self, house_code):
+    def get_not_actual_houses(self, house_code):
         url = self.HOUSE_CODE_URL.format(house_code, 'false')
         return self._get_response_body(self._http_client.get(url))
 
-    def get_active_houses(self, house_code):
+    def get_actual_houses(self, house_code):
         url = self.HOUSE_CODE_URL.format(house_code, 'true')
         return self._get_response_body(self._http_client.get(url))
 
