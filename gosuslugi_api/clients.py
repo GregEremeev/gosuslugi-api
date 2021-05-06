@@ -9,6 +9,7 @@ from zipfile import ZipFile
 import requests
 from openpyxl import load_workbook
 
+from gosuslugi_api.utils import Licenses
 from gosuslugi_api.consts import REGION_CODES_AND_NAMES
 from gosuslugi_api.exceptions import RegionCodeIsAbsentError
 
@@ -224,16 +225,16 @@ class GosUslugiAPIClient:
 
         return licenses_info
 
-    def _get_xlsx_workbooks_from_licenses_info(self, licenses_info):
+    def _get_workbooks_from_licenses_info(self, licenses_info):
         for region_name, zip_content in licenses_info.items():
             zip_file = ZipFile(BytesIO(zip_content))
             for name in zip_file.namelist():
                 if name.endswith('.xlsx'):
-                    yield (
-                        load_workbook(zip_file.open(name), read_only=True),
-                        region_name)
+                    xlsx_content = BytesIO(zip_file.open(name).read())
+                    workbook = load_workbook(xlsx_content, read_only=True)
+                    yield Licenses(region_name=region_name, workbook=workbook)
 
-    def get_xlsx_licenses_list(self, region_codes):
+    def get_licenses(self, region_codes):
         for region_code in region_codes:
             if region_code not in REGION_CODES_AND_NAMES:
                 raise RegionCodeIsAbsentError(
@@ -241,7 +242,7 @@ class GosUslugiAPIClient:
 
         license_uids = self._get_license_uids(region_codes)
         licenses_info = self._get_licenses_info(license_uids)
-        return self._get_xlsx_workbooks_from_licenses_info(licenses_info)
+        return self._get_workbooks_from_licenses_info(licenses_info)
 
     def get_organizations(self, inn):
         payload = self.ORGANIZATION_PAYLOAD_PART_1 + str(inn)
