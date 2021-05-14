@@ -4,6 +4,7 @@ import logging
 from io import BytesIO
 from typing import Union
 from urllib.parse import urlencode
+from uuid import uuid4
 from zipfile import ZipFile
 
 import requests
@@ -162,8 +163,11 @@ class GosUslugiAPIClient:
         f'{BASE_URL}homemanagement/api/rest/services/houses/public/'
         'searchByOrg?pageIndex={page_number}&elementsPerPage={elems_per_page}')
     HOME_MANAGEMENT_URL = (
-        'https://dom.gosuslugi.ru/homemanagement/api/rest/services/'
+        f'{BASE_URL}homemanagement/api/rest/services/'
         'houses/public/1/{}/')
+    HOUSE_INFO_URL = (
+        f'{BASE_URL}information-disclosure/api/rest/services/'
+        'disclosures/mkd/house-info?houseGuid={}')
 
     ORGANIZATION_PAYLOAD_PART_1 = (
         '{"sortCriteriaList":[{"sortedBy":"organizationType",'
@@ -283,3 +287,11 @@ class GosUslugiAPIClient:
     def get_home_management(self, home_management_guid):
         url = self.HOME_MANAGEMENT_URL.format(home_management_guid)
         return self._get_response_body(requests.get(url))
+
+    def get_house_info(self, house_guid):
+        headers = {
+            'Session-GUID': str(uuid4()),
+            'Request-GUID': str(uuid4())
+        }
+        url = self.HOUSE_INFO_URL.format(house_guid)
+        return self._get_response_body(requests.get(url, headers=headers))

@@ -39,4 +39,6 @@ home_managements = list(client.get_home_managements(org_guid=org_guid))
 # get detailed info about a home management
 home_management_guid = home_managements[0]['items'][0]['guid']
 home_management = client.get_home_management(home_management_guid)
+
+house_info = client.get_house_info(house_guid=home_management_guid)
 ```
